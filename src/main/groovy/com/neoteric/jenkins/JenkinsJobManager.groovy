@@ -74,7 +74,7 @@ class JenkinsJobManager {
     }
 
     public List<TemplateJob> findRequiredTemplateJobs(List<String> allJobNames) {
-        String regex = /^($templateJobPrefix)-(.*)-($templateFeatureSuffix|$templateReleaseSuffix|$templateHotfixSuffix)$/
+        String regex = /^($templateJobPrefix)-(.*)-($templateFeatureSuffix|$templateReleaseSuffix|$templateHotfixSuffix|$templateBugfixSuffix)$/
 
         List<TemplateJob> templateJobs = allJobNames.findResults { String jobName ->
 
