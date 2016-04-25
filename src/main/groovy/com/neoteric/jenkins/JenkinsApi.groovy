@@ -59,7 +59,7 @@ class JenkinsApi {
 
     void cloneJobForBranch(String jobPrefix, ConcreteJob missingJob, String createJobInView, String gitUrl, String scriptCommand) {
         String createJobInViewPath = resolveViewPath(createJobInView)
-        println "-----> createInView after" + createJobInView
+        println "-----> createInView after " + createJobInView
         String missingJobConfig = configForMissingJob(missingJob, gitUrl, scriptCommand)
         TemplateJob templateJob = missingJob.templateJob
 
