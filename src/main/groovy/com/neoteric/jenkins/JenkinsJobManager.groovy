@@ -21,14 +21,17 @@ class JenkinsJobManager {
     String featureSuffix = "feature/"
     String hotfixSuffix = "hotfix/"
     String releaseSuffix = "release/"
+    String bugfixSuffix = "bugfix/"
 
     String templateFeatureSuffix = "feature"
     String templateHotfixSuffix = "hotfix"
     String templateReleaseSuffix = "release"
+    String templateBugfixSuffix = "bugfix"
 
     def branchSuffixMatch = [(templateFeatureSuffix): featureSuffix,
                              (templateHotfixSuffix) : hotfixSuffix,
-                             (templateReleaseSuffix): releaseSuffix]
+                             (templateReleaseSuffix): releaseSuffix,
+                             (templateBugfixSuffix) : bugfixSuffix]
 
     JenkinsApi jenkinsApi
     GitApi gitApi
