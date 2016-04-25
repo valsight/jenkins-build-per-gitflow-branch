@@ -18,20 +18,20 @@ class JenkinsJobManager {
     Boolean noDelete = false
     Boolean startOnCreate = false
 
-    String featureSuffix = "feature/"
-    String hotfixSuffix = "hotfix/"
-    String releaseSuffix = "release/"
-    String bugfixSuffix = "bugfix/"
+    // String featureSuffix = "feature/"
+    // String hotfixSuffix = "hotfix/"
+    // String releaseSuffix = "release/"
+    // String bugfixSuffix = "bugfix/"
 
-    String templateFeatureSuffix = "feature"
-    String templateHotfixSuffix = "hotfix"
-    String templateReleaseSuffix = "release"
-    String templateBugfixSuffix = "bugfix"
+    // String templateFeatureSuffix = "feature"
+    // String templateHotfixSuffix = "hotfix"
+    // String templateReleaseSuffix = "release"
+    // String templateBugfixSuffix = "bugfix"
 
-    def branchSuffixMatch = [(templateFeatureSuffix): featureSuffix,
-                             (templateHotfixSuffix) : hotfixSuffix,
-                             (templateReleaseSuffix): releaseSuffix,
-                             (templateBugfixSuffix) : bugfixSuffix]
+    // def branchSuffixMatch = [(templateFeatureSuffix): featureSuffix,
+    //                          (templateHotfixSuffix) : hotfixSuffix,
+    //                          (templateReleaseSuffix): releaseSuffix,
+    //                          (templateBugfixSuffix) : bugfixSuffix]
 
     JenkinsApi jenkinsApi
     GitApi gitApi
@@ -74,13 +74,13 @@ class JenkinsJobManager {
     }
 
     public List<TemplateJob> findRequiredTemplateJobs(List<String> allJobNames) {
-        String regex = /^($templateJobPrefix)-(.*)-($templateFeatureSuffix|$templateReleaseSuffix|$templateHotfixSuffix|$templateBugfixSuffix)$/
+        String regex = /^($templateJobPrefix)-(.*)$/
 
         List<TemplateJob> templateJobs = allJobNames.findResults { String jobName ->
 
             TemplateJob templateJob = null
-            jobName.find(regex) { full, templateName, baseJobName, branchName ->
-                templateJob = new TemplateJob(jobName: full, baseJobName: baseJobName, templateBranchName: branchName)
+            jobName.find(regex) { full, templateName, baseJobName ->
+                templateJob = new TemplateJob(jobName: full, baseJobName: baseJobName)
             }
             return templateJob
         }
@@ -91,21 +91,17 @@ class JenkinsJobManager {
 
     public void syncJobs(List<String> allBranchNames, List<String> jobNames, List<TemplateJob> templateJobs) {
 
-        def templateJobsByBranch = templateJobs.groupBy({ template -> template.templateBranchName })
-
         List<ConcreteJob> missingJobs = [];
         List<String> jobsToDelete = [];
 
-        templateJobsByBranch.keySet().each { templateBranchToProcess ->
+        templateJobs.each { templateBranchToProcess ->
             println "-> Checking $templateBranchToProcess branches"
-            List<String> branchesWithCorrespondingTemplate = allBranchNames.findAll { branchName ->
-                branchName.startsWith(branchSuffixMatch[templateBranchToProcess])
-            }
+            List<String> branchesWithCorrespondingTemplate = allBranchNames;
 
             println "---> Founded corresponding branches: $branchesWithCorrespondingTemplate"
             branchesWithCorrespondingTemplate.each { branchToProcess ->
                 println "-----> Processing branch: $branchToProcess"
-                List<ConcreteJob> expectedJobsPerBranch = templateJobsByBranch[templateBranchToProcess].collect { TemplateJob templateJob ->
+                List<ConcreteJob> expectedJobsPerBranch = templateJobs.collect { TemplateJob templateJob ->
                     templateJob.concreteJobForBranch(jobPrefix, branchToProcess)
                 }
                 println "-------> Expected jobs:"
@@ -122,8 +118,7 @@ class JenkinsJobManager {
                 missingJobs.addAll(missingJobsPerBranch)
             }
 
-            List<String> deleteCandidates = jobNames.findAll { it.contains(branchSuffixMatch[templateBranchToProcess]) }
-            List<String> jobsToDeletePerBranch = deleteCandidates.findAll { candidate ->
+            List<String> jobsToDeletePerBranch = jobNames.findAll { candidate ->
                 !branchesWithCorrespondingTemplate.any { candidate.endsWith(it.replaceAll('/', '_')) }
             }
 
@@ -132,6 +127,7 @@ class JenkinsJobManager {
             jobsToDelete.addAll(jobsToDeletePerBranch)
         }
         println "\nSummary:\n---------------"
+
         if (missingJobs) {
             for (ConcreteJob missingJob in missingJobs) {
                 println "Creating missing job: ${missingJob.jobName} from ${missingJob.templateJob.jobName}"
